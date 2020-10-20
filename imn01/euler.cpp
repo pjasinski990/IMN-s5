@@ -1,0 +1,5 @@
+class EulerCalculate
+{
+private:
+
+};
