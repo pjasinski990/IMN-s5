@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
         double y = fy0;
         while (t <= tmax)
         {
-            fprintf(f1, "%f %f %f\n", t, y, fabs(y - exact(lambda, t)));
+            fprintf(f1, "%f %f %f\n", t, y, y - exact(lambda, t));
             t += ts[i];
             y += y*lambda*ts[i];
         }
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
         {
             k1 = lambda * y;
             k2 = lambda * (y + ts[i] * k1);
-            fprintf(f2, "%f %f %f\n", t, y, fabs(y - exact(lambda, t)));
+            fprintf(f2, "%f %f %f\n", t, y, y - exact(lambda, t));
             t += ts[i];
             y += ts[i]/2 * (k1 + k2);
         }
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
             k2 = lambda * (y + ts[i]/2 * k1);
             k3 = lambda * (y + ts[i]/2 * k2);
             k4 = lambda * (y + ts[i] * k3);
-            fprintf(f3, "%f %f %f\n", t, y, fabs(y - exact(lambda, t)));
+            fprintf(f3, "%f %f %f\n", t, y, y - exact(lambda, t));
             t += ts[i];
             y += ts[i]/6 * (k1 + 2*k2 + 2*k3 + k4);
         }
@@ -109,9 +109,9 @@ int main(int argc, char const *argv[])
         {
             fprintf(f4, "%f %f %f\n", t, Q, I);
             k1q = I;
-            k1i = V(omegas[i], t);
+            k1i = V(omegas[i], t) / L - 1/(L*C) * Q - R/L * I;
             k2q = I + dt/2 * k1i;
-            k2i = V(omegas[i], t + dt/2) / L + 1/(L*C) * (Q + dt/2 * k1q) - R/L * (I + dt/2 * k1i);
+            k2i = V(omegas[i], t + dt/2) / L - 1/(L*C) * (Q + dt/2 * k1q) - R/L * (I + dt/2 * k1i);
             k3q = I + dt/2 * k2i;
             k3i = V(omegas[i], t + dt/2) / L - 1/(L*C) * (Q + dt/2 * k2q) - R/L * (I + dt/2 * k2i);
             k4q = I + dt * k3i;

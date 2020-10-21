@@ -7,7 +7,7 @@ set style line 2 \
 set style line 3 \
     linecolor rgb "royalblue" \
     linetype 1 linewidth 2
-set style line 3 \
+set style line 4 \
     linecolor rgb "violet" \
     linetype 1 linewidth 2
 
