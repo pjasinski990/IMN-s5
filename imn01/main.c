@@ -9,6 +9,11 @@ double exact(double lambda, double t)
     return exp(t * lambda);
 }
 
+double V(double omegaV, double t) 
+{
+    return 10 * sin(omegaV * t);
+}
+
 int main(int argc, char const *argv[])
 {
     // Zadanie 1sze 
@@ -78,11 +83,6 @@ int main(int argc, char const *argv[])
 
 
     // Zadanie 2 - RRZ 2go rzedu
-
-    double V(double omegaV, double t) 
-    {
-        return 10 * sin(omegaV * t);
-    }
 
     const double dt = 10e-4;
     const double R = 100;
