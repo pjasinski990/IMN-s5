@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
 
     // Zadanie 2 - RRZ 2go rzedu
 
-    const double dt = 10e-4;
+    const double dt = 1e-4;
     const double R = 100;
     const double L = 0.1;
     const double C = 0.001;
