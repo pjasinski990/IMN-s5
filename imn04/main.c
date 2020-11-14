@@ -30,111 +30,106 @@ double calc_sum(double** V, int max_x, int max_y, double delta, double** rho_val
     return sum;
 }
 
-void calculate_global(equation_params params, FILE* file)
+void calculate_global(equation_params params, FILE* file_sum, FILE* file_result, FILE* file_sigma)
 {
-    int nx = params.nx;
-    int ny = params.ny;
-    double x_max = params.x_max;
-    double y_max = params.y_max;
-    double V1 = params.V1;
-    double V2 = params.V2;
-    double delta = params.delta;
-    double omega = params.omega;
-    double eps = params.eps;
-    double TOL = params.TOL;
+    double** Vs = alloc_matrix(params.nx+1, params.ny+1);
+    double** Vn = alloc_matrix(params.nx+1, params.ny+1);
+    double** rho_values = alloc_matrix(params.nx+1, params.ny+1);
 
-    double** Vs = alloc_matrix(nx+1, ny+1);
-    double** Vn = alloc_matrix(nx+1, ny+1);
-    double** rho_values = alloc_matrix(nx+1, ny+1);
-
-    for (int i = 0; i < nx + 1; i++) {
-        Vs[i][0] = Vn[i][0] = V1;
-        Vs[i][ny] = Vn[i][ny] = V2;
-        for (int j = 0; j < ny + 1; j++) {
-            rho_values[i][j] = rho(i * delta, j * delta, x_max, y_max);
+    for (int i = 0; i < params.nx + 1; i++) {
+        Vs[i][0] = Vn[i][0] = params.V1;
+        Vs[i][params.ny] = Vn[i][params.ny] = params.V2;
+        for (int j = 0; j < params.ny + 1; j++) {
+            rho_values[i][j] = rho(i * params.delta, j * params.delta, params.x_max, params.y_max);
         }
     }
 
     int iter_count = 0;
     double prev_S, curr_S;
-    curr_S = calc_sum(Vs, nx, ny, delta, rho_values);
+    curr_S = calc_sum(Vs, params.nx, params.ny, params.delta, rho_values);
     do {
         prev_S = curr_S;
-        for (int i = 1; i < nx; i++)
+        for (int i = 1; i < params.nx; i++)
         {
-            for (int j = 1; j < ny; j++)
+            for (int j = 1; j < params.ny; j++)
             {
-                Vn[i][j] = 0.25 * (Vs[i+1][j] + Vs[i-1][j] + Vs[i][j+1] + Vs[i][j-1] + delta * delta
-                        / eps * rho_values[i][j]);
+                Vn[i][j] = 0.25 * (Vs[i+1][j] + Vs[i-1][j] + Vs[i][j+1] + Vs[i][j-1] + params.delta * params.delta
+                        / params.eps * rho_values[i][j]);
             }
         }
 
-        for (int j = 0; j < ny + 1; j++)
+        for (int j = 0; j < params.ny + 1; j++)
         {
             Vn[0][j] = Vn[1][j];
-            Vn[nx][j] = Vn[nx-1][j];
+            Vn[params.nx][j] = Vn[params.nx-1][j];
         }
 
-        for (int i = 0; i < nx + 1; i++)
+        for (int i = 0; i < params.nx + 1; i++)
         {
-            for (int j = 0; j < ny + 1; j++)
+            for (int j = 0; j < params.ny + 1; j++)
             {
-                Vs[i][j] = (1.0 - omega) * Vs[i][j] + omega * Vn[i][j];
+                Vs[i][j] = (1.0 - params.omega) * Vs[i][j] + params.omega * Vn[i][j];
             }
         }
-        curr_S = calc_sum(Vs, nx, ny, delta, rho_values);
-        fprintf(file, "%d %f\n", iter_count++, curr_S);
+        curr_S = calc_sum(Vs, params.nx, params.ny, params.delta, rho_values);
+        fprintf(file_sum, "%d %f\n", iter_count++, curr_S);
     }
-    while (fabs((curr_S - prev_S) / prev_S) > TOL);
+    while (fabs((curr_S - prev_S) / prev_S) > params.TOL);
 
-    free_matrix(Vs, nx + 1);
-    free_matrix(Vn, nx + 1);
-    free_matrix(rho_values, nx + 1);
+    for (int i = 0; i < params.nx + 1; ++i) {
+        for (int j = 0; j < params.ny + 1; ++j) {
+            fprintf(file_result, "%d %d %f\n", i, j, Vs[i][j]);
+        }
+        fprintf(file_result, "\n");
+    }
+
+    for (int i = 1; i < params.nx; ++i) {
+        for (int j = 1; j < params.ny; ++j) {
+            double temp1 = (Vs[i+1][j] - 2.0*Vs[i][j] + Vs[i-1][j]) / (params.delta * params.delta);
+            double temp2 = (Vs[i][j+1] - 2.0*Vs[i][j] + Vs[i][j-1]) / (params.delta * params.delta);
+            fprintf(file_sigma, "%d %d %f\n", i, j, temp1 + temp2 + rho_values[i][j] / params.eps);
+        }
+        fprintf(file_sigma, "\n");
+    }
+
+    free_matrix(Vs, params.nx + 1);
+    free_matrix(Vn, params.nx + 1);
+    free_matrix(rho_values, params.nx + 1);
 }
 
-void calculate_local(equation_params params, FILE* file) {
-    int nx = params.nx;
-    int ny = params.ny;
-    double x_max = params.x_max;
-    double y_max = params.y_max;
-    double V1 = params.V1;
-    double V2 = params.V2;
-    double delta = params.delta;
-    double omega = params.omega;
-    double eps = params.eps;
-    double TOL = params.TOL;
-
-    double **V = alloc_matrix(nx + 1, ny + 1);
-    double **rho_values = alloc_matrix(nx + 1, ny + 1);
-    for (int i = 0; i < nx + 1; i++) {
-        V[i][0] = V1;
-        V[i][ny] = V2;
-        for (int j = 0; j < ny + 1; j++) {
-            rho_values[i][j] = rho(i * delta, j * delta, x_max, y_max);
+void calculate_local(equation_params params, FILE* file)
+{
+    double **V = alloc_matrix(params.nx + 1, params.ny + 1);
+    double **rho_values = alloc_matrix(params.nx + 1, params.ny + 1);
+    for (int i = 0; i < params.nx + 1; i++) {
+        V[i][0] = params.V1;
+        V[i][params.ny] = params.V2;
+        for (int j = 0; j < params.ny + 1; j++) {
+            rho_values[i][j] = rho(i * params.delta, j * params.delta, params.x_max, params.y_max);
         }
     }
 
     int iter_count = 0;
     double prev_S, curr_S;
-    curr_S = calc_sum(V, nx, ny, delta, rho_values);
+    curr_S = calc_sum(V, params.nx, params.ny, params.delta, rho_values);
     do {
-        for (int i = 1; i < nx; i++) {
-            for (int j = 1; j < ny; j++) {
-                V[i][j] = (1.0 - omega) * V[i][j] + omega / 4.0 * (V[i+1][j] + V[i-1][j] + V[i][j+1] + V[i][j-1]
-                                                                   + delta * delta / eps * rho_values[i][j]);
+        for (int i = 1; i < params.nx; i++) {
+            for (int j = 1; j < params.ny; j++) {
+                V[i][j] = (1.0 - params.omega) * V[i][j] + params.omega / 4.0 * (V[i+1][j] + V[i-1][j] + V[i][j+1] + V[i][j-1]
+                                                                   + params.delta * params.delta / params.eps * rho_values[i][j]);
             }
         }
-        for (int j = 0; j < ny + 1; j++) {
+        for (int j = 0; j < params.ny + 1; j++) {
             V[0][j] = V[1][j];
-            V[nx][j] = V[nx - 1][j];
+            V[params.nx][j] = V[params.nx - 1][j];
         }
         prev_S = curr_S;
-        curr_S = calc_sum(V, nx, ny, delta, rho_values);
+        curr_S = calc_sum(V, params.nx, params.ny, params.delta, rho_values);
         fprintf(file, "%d %f\n", ++iter_count, curr_S);
-    } while (fabs((curr_S - prev_S) / prev_S) > TOL);
+    } while (fabs((curr_S - prev_S) / prev_S) > params.TOL);
 
-    free_matrix(V, nx + 1);
-    free_matrix(rho_values, nx + 1);
+    free_matrix(V, params.nx + 1);
+    free_matrix(rho_values, params.nx + 1);
 }
 
 int main(int argc, const char* argv[])
@@ -155,11 +150,15 @@ int main(int argc, const char* argv[])
     // Relaksacja globalna
     FILE* f_global_sum_1 = fopen("global_sum_omega1.dat", "w");
     FILE* f_global_sum_2 = fopen("global_sum_omega2.dat", "w");
+    FILE* f_global_solution_1 = fopen("global_solution_omega1.dat", "w");
+    FILE* f_global_solution_2 = fopen("global_solution_omega2.dat", "w");
+    FILE* f_global_sigma_1 = fopen("global_sigma_omega1.dat", "w");
+    FILE* f_global_sigma_2 = fopen("global_sigma_omega2.dat", "w");
 
     equation_params params = {nx, ny, x_max, y_max, V1, V2, delta, omegas_g[0], eps, TOL};
-    calculate_global(params, f_global_sum_1);
+    calculate_global(params, f_global_sum_1, f_global_solution_1, f_global_sigma_1);
     params.omega = omegas_g[1];
-    calculate_global(params, f_global_sum_2);
+    calculate_global(params, f_global_sum_2, f_global_solution_2, f_global_sigma_2);
 
     fclose(f_global_sum_1);
     fclose(f_global_sum_2);
