@@ -13,7 +13,7 @@ double V_B3(double y, double y_max);
 double V_B4(double x, double x_max);
 double calc_V(int i, int j, int k, double** V_mat);
 double calc_sum(double** V_mat, double delta, int k);
-void fill_mesh(double** V_mat, double delta, int k, double tol);
+void fill_mesh(double** V_mat, double delta, int k, double tol, FILE* file);
 void thicken_mesh(double** V_mat, double delta, int old_k);
 void write_to_file(double** V_mat, double delta, int k, FILE* file);
 
@@ -48,7 +48,7 @@ int main(int argc, const char* argv[])
     int k = k_max;
     int i = 0;
     while (k > 0) {
-        fill_mesh(V_mat, delta, k, tol);
+        fill_mesh(V_mat, delta, k, tol, f_sum);
         write_to_file(V_mat, delta, k, files[i++]);
         thicken_mesh(V_mat, delta, k);
         k /= 2;
@@ -102,7 +102,7 @@ double calc_sum(double** V_mat, double delta, int k)
     return sum;
 }
 
-void fill_mesh(double** V_mat, double delta, int k, double tol)
+void fill_mesh(double** V_mat, double delta, int k, double tol, FILE* file)
 {
     static int iter_count = 0;
     double prev_S, curr_S;
@@ -116,8 +116,9 @@ void fill_mesh(double** V_mat, double delta, int k, double tol)
             }
         }
         curr_S = calc_sum(V_mat, delta, k);
-        iter_count++;
+        fprintf(file, "%d %f\n", ++iter_count, curr_S);
     } while(fabs((curr_S - prev_S) / prev_S) >= tol);
+    fprintf(file, "\n\n");
 }
 
 void thicken_mesh(double** V_mat, double delta, int old_k)
@@ -125,9 +126,13 @@ void thicken_mesh(double** V_mat, double delta, int old_k)
     int new_k = old_k / 2;
     for (int i = 0; i < NX; i += old_k) {
         for (int j = 0; j < NY; j += old_k) {
-            V_mat[i][j + new_k] = 0.5 * (V_mat[i][j] + V_mat[i][j + old_k]);
-            V_mat[i + new_k][j + new_k] = 0.25 * (V_mat[i][j] + V_mat[i+old_k][j] + V_mat[i][j+old_k] + V_mat[i+old_k][j+old_k]);
-            V_mat[i + new_k][j] = 0.5 * (V_mat[i][j] + V_mat[i + old_k][j]);
+            if (i + old_k < NX) {
+                V_mat[i+old_k][j+new_k] = 0.5 * (V_mat[i+old_k][j] + V_mat[i+old_k][j+old_k]);
+            }
+            if (j + old_k < NY) {
+                V_mat[i+new_k][j+old_k] = 0.5 * (V_mat[i][j+old_k] + V_mat[i+old_k][j+old_k]);
+            }
+            V_mat[i+new_k][j+new_k] = 0.25 * (V_mat[i][j] + V_mat[i+old_k][j] + V_mat[i][j+old_k] + V_mat[i+old_k][j+old_k]);
         }
     }
 }
