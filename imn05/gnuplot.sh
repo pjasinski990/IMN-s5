@@ -12,7 +12,6 @@ plot 'sum.dat' i 0 u 1:2 w l ls 1 t "k = 16", \
 
 set xlabel "x"
 set ylabel "y"
-set size ratio -1
 set xrange[0:25.6]
 set yrange[0:25.6]
 set tics out
