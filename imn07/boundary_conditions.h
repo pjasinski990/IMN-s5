@@ -18,7 +18,7 @@ double bcC_psi(int j, double q_in) {
 }
 
 double bcB_psi(double q_in) {
-    return  bcA_psi(0, q_in);
+    return  bcA_psi(NY, q_in);
 }
 
 double bcD_psi(double q_in) {

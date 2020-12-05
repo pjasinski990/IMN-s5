@@ -4,13 +4,10 @@
 #include "util.h"
 
 int is_on_edge(int i, int j) {
-    if (i == 0 || i == NX || j == 0 || j == NY) {
+    if (j == 0 || j == NY) {
         return 1;
     }
-    else if (i == I1 && j <= J1) {
-        return 1;
-    }
-    else if (j == J1 && i <= I1) {
+    else if (i <= I1 && j <= J1) {
         return 1;
     }
     return 0;
@@ -44,8 +41,8 @@ void ns_relax(double** psi, double** zeta, double q_in) {
     for (int it = 1; it <= IT_MAX; ++it) {
         if (it >= 2000) {omega = 1;}
 
-        for (int i = 1; i < NX-1; ++i) {
-            for (int j = 1; j < NY-1; ++j) {
+        for (int i = 1; i < NX; ++i) {
+            for (int j = 1; j < NY; ++j) {
                 if (!is_on_edge(i, j)) {
                     psi[i][j] = calc_psi(i, j, psi, zeta);
                     zeta[i][j] = calc_zeta(i, j, psi, zeta, omega);
@@ -66,8 +63,8 @@ int main(int argc, const char* argv[]) {
     FILE* file_zeta = fopen("zeta.dat", "w");
 
     ns_relax(psi, zeta, q_in);
-    matrix_to_file(psi, NX, NY, file_psi);
-    matrix_to_file(zeta, NX, NY, file_zeta);
+    matrix_to_file(psi, NX+1, NY+1, file_psi);
+    matrix_to_file(zeta, NX+1, NY+1, file_zeta);
 
     fclose(file_psi);
     fclose(file_zeta);
