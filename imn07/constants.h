@@ -10,3 +10,4 @@
 #define IT_MAX 20000
 #define YJ1 (DELTA * J1)
 #define YNY (DELTA * NY)
+

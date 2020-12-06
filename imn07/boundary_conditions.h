@@ -8,7 +8,8 @@ double Q_out(double q_in) {
 
 double bcA_psi(int j, double q_in) {
     double y = DELTA * j;
-    return q_in / (2.0 * MU) * (pow(y, 3) / 3.0 - y*y / 2.0 * (YJ1 + YNY) + y * YJ1 * YNY);
+    double res = q_in / (2.0 * MU) * (pow(y, 3) / 3.0 - y*y / 2.0 * (YJ1 + YNY) + y * YJ1 * YNY);
+    return res;
 }
 
 double bcC_psi(int j, double q_in) {
@@ -16,23 +17,6 @@ double bcC_psi(int j, double q_in) {
     double q_out = Q_out(q_in);
     return q_out / (2.0 * MU) * (pow(y, 3) / 3.0 - y*y / 2.0 * YNY) + (q_in * YJ1*YJ1 * (3.0 * YNY - YJ1)) / (12.0 * MU);
 }
-
-double bcB_psi(double q_in) {
-    return  bcA_psi(NY, q_in);
-}
-
-double bcD_psi(double q_in) {
-    return bcA_psi(J1, q_in);
-}
-
-double bcE_psi(double q_in) {
-    return bcA_psi(J1, q_in);
-}
-
-double bcF_psi(double q_in) {
-    return bcA_psi(J1, q_in);
-}
-
 
 double bcA_zeta(int j, double q_in) {
     double y = DELTA * j;
@@ -66,49 +50,57 @@ double bcEF_corner_zeta(double** zeta) {
 }
 
 void update_psi_bounds(double** psi, double q_in) {
-    double psi_B = bcB_psi(q_in);
-    double psi_D = bcD_psi(q_in);
-    double psi_E = bcE_psi(q_in);
-    double psi_F = bcF_psi(q_in);
-
+    // A 
     for (int j = J1; j <= NY; ++j) {
         psi[0][j] = bcA_psi(j, q_in);
     }
+    // B 
     for (int i = 1; i < NX; ++i) {
-        psi[i][NY] = psi_B;
+        psi[i][NY] = psi[0][NY];
     }
+    // C 
     for (int j = 0; j <= NY; ++j) {
         psi[NX][j] = bcC_psi(j, q_in);
     }
+    // D
     for (int i = I1; i < NX; ++i) {
-        psi[i][0] = psi_D;
+        psi[i][0] = psi[0][J1];
     }
+    // E
     for (int j = 1; j <= J1; ++j) {
-        psi[I1][j] = psi_E;
+        psi[I1][j] = psi[0][J1];
     }
+    // F
     for (int i = 1; i <= I1; ++i) {
-        psi[i][J1] = psi_F;
+        psi[i][J1] = psi[0][J1];
     }
 }
 
 void update_zeta_bounds(double** psi, double** zeta, double q_in) {
+    // A 
     for (int j = J1; j <= NY; ++j) {
         zeta[0][j] = bcA_zeta(j, q_in);
     }
+    // C
     for (int j = 0; j <= NY; ++j) {
         zeta[NX][j] = bcC_zeta(j, q_in);
     }
+    // B
     for (int i = 1; i < NX; ++i) {
         zeta[i][NY] = bcB_zeta(psi, i);
     }
+    // D
     for (int i = I1+1; i < NX; ++i) {
         zeta[i][0] = bcD_zeta(psi, i);
     }
+    // E
     for (int j = 1; j < J1; ++j) {
         zeta[I1][j] = bcE_zeta(psi, j);
     }
-    for (int i = 1; i < I1; ++i) {
+    // F
+    for (int i = 1; i <= I1; ++i) {
         zeta[i][J1] = bcF_zeta(psi, i);
     }
+
     zeta[I1][J1] = bcEF_corner_zeta(zeta);
 }
