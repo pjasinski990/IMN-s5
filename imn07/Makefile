@@ -28,7 +28,6 @@ clean:
 	rm -f *~
 	rm -f *.dat
 	rm -f *.eps
-	rm -f *.png
 	rm -f $(OUT)
 
 .PHONY: clean plot run
