@@ -199,4 +199,10 @@ int main(int argc, const char* argv[]) {
         fclose(dist_no_diff[i]);
         fclose(dist_with_diff[i]);
     }
+
+    free_matrix(u0, NX+1);
+    free_matrix(u1, NX+1);
+    free_matrix(vx, NX+1);
+    free_matrix(vy, NX+1);
+    free_matrix(psi, NX+1);
 }
