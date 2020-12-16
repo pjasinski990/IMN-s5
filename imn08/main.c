@@ -162,6 +162,18 @@ int main(int argc, const char* argv[]) {
     }
     double dt = DELTA / (4.0 * v_max);
 
+    FILE* file_vx= fopen("vx.dat", "w");
+    FILE* file_vy = fopen("vy.dat", "w");
+
+    for (int i = 0; i <= NX; ++i) {
+        for (int j = 0; j <= NY; ++j) {
+            fprintf(file_vx, "%f %f %f\n", i * DELTA, j * DELTA, vx[i][j]);
+            fprintf(file_vy, "%f %f %f\n", i * DELTA, j * DELTA, vy[i][j]);
+        }
+        fprintf(file_vx, "\n");
+        fprintf(file_vy, "\n");
+    }
+
     FILE* file_no_diff= fopen("no_diff.dat", "w");
     FILE* file_with_diff= fopen("with_diff.dat", "w");
     FILE* dist_no_diff[SNAP_COUNT];
